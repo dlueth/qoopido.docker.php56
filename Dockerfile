@@ -17,17 +17,6 @@ MAINTAINER Dirk Lüth <info@qoopido.com>
     	groupmod -g $(($BOOT2DOCKER_GID + 10000)) $(getent group $BOOT2DOCKER_GID | cut -d: -f1) && \
     	groupmod -g ${BOOT2DOCKER_GID} staff
 
-# configure defaults
-	ADD configure.sh /configure.sh
-	ADD config /config
-	RUN chmod +x /configure.sh && \
-		chmod 755 /configure.sh
-	RUN /configure.sh && \
-		chmod +x /etc/my_init.d/*.sh && \
-		chmod 755 /etc/my_init.d/*.sh && \
-		chmod +x /etc/service/php56/run && \
-		chmod 755 /etc/service/php56/run
-
 # install language pack required to add PPA
 	RUN apt-get update && \
 		apt-get -qy upgrade && \
@@ -39,11 +28,6 @@ MAINTAINER Dirk Lüth <info@qoopido.com>
 
 # add PPA for PHP 7
 	RUN sudo add-apt-repository ppa:ondrej/php5-5.6
-		
-# add suhosin repository
-	RUN echo "deb http://repo.suhosin.org/ ubuntu-trusty main" >> /etc/apt/sources.list
-	ADD suhosin.key /suhosin.key
-	RUN sudo apt-key add suhosin.key
 	
 # install packages
 	RUN apt-get update && \
@@ -59,15 +43,27 @@ MAINTAINER Dirk Lüth <info@qoopido.com>
 			php5-sqlite \
 			php5-apcu \
 			php5-memcached \
-			php5-suhosin-extension \
 			php5-xdebug
 			
 # generate locales
 	RUN cp /usr/share/i18n/SUPPORTED /var/lib/locales/supported.d/local && \
 		locale-gen
-		
-# enable PHP5 suhosin extension
-	RUN ln -s /etc/php5/mods-available/suhosin.ini /etc/php5/fpm/conf.d/10-suhosin.ini
+
+# configure defaults
+	ADD configure.sh /configure.sh
+	ADD config /config
+	RUN chmod +x /configure.sh && \
+		chmod 755 /configure.sh
+	RUN /configure.sh && \
+		chmod +x /etc/my_init.d/*.sh && \
+		chmod 755 /etc/my_init.d/*.sh && \
+		chmod +x /etc/service/php56/run && \
+		chmod 755 /etc/service/php56/run
+
+# enable extensions
+
+# disable extensions
+	RUN rm -rf /etc/php5/fpm/conf.d/20-xdebug.ini
 
 # add default /app directory
 	ADD app /app
@@ -77,7 +73,7 @@ MAINTAINER Dirk Lüth <info@qoopido.com>
 
 # cleanup
 	RUN apt-get clean && \
-		rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /configure.sh /suhosin.key /etc/php5/fpm/conf.d/20-xdebug.ini
+		rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /configure.sh
 
 # finalize
 	VOLUME ["/app/htdocs", "/app/logs", "/app/sessions", "/app/config"]
