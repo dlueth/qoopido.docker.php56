@@ -1,3 +1,18 @@
 #!/bin/bash
 
-exec /usr/sbin/php5-fpm -F > /dev/null 2>&1
+down()
+{
+	local DOWN="/app/config/down.sh"
+
+	if [ -f $DOWN ]
+    then
+    	echo "    Running shutdown script /app/config/down.sh"
+		chmod +x $DOWN && chmod 755 $DOWN && eval $DOWN;
+    fi
+
+    exit
+}
+
+trap down SIGTERM
+
+exec /usr/sbin/php5-fpm -F > /dev/null 2>&1 & wait

@@ -1,15 +1,15 @@
 #!/bin/bash
 
-INIT="/etc/php5/initialize.sh"
+UP="/app/config/up.sh"
 
-if [ -d /app/config/php56 ]
+if [ -d /app/config ]
 then
-	files=($(find /app/config/php56 -type f))
+	files=($(find /app/config -type f))
 
 	for source in "${files[@]}"
 	do
 		pattern="\.DS_Store"
-		target=${source/\/app\/config\/php56/\/etc\/php5}
+		target=${source/\/app\/config/\/etc\/php5}
 
 		if [[ ! $target =~ $pattern ]]; then
 			if [[ -f $target ]]; then
@@ -22,10 +22,12 @@ then
 fi
 
 mkdir -p /app/htdocs
-mkdir -p /app/sessions
-mkdir -p /app/logs/php56
+mkdir -p /app/data/sessions
+mkdir -p /app/data/logs
+mkdir -p /app/config
 
-if [ -f $INIT ]
+if [ -f $UP ]
 then
-	 chmod +x $INIT && chmod 755 $INIT && eval $INIT;
+	echo "    Running startup script /app/config/up.sh"
+	chmod +x $UP && chmod 755 $UP && eval $UP;
 fi
