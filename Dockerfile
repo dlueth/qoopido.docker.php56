@@ -5,6 +5,17 @@ MAINTAINER Dirk Lüth <info@qoopido.com>
 	CMD ["/sbin/my_init"]
 	ENV DEBIAN_FRONTEND noninteractive
 
+# configure defaults
+	COPY configure.sh /
+	ADD config /config
+	RUN chmod +x /configure.sh \
+		&& chmod 755 /configure.sh
+	RUN /configure.sh \
+		&& chmod +x /etc/my_init.d/*.sh \
+		&& chmod 755 /etc/my_init.d/*.sh \
+		&& chmod +x /etc/service/php56/run \
+		&& chmod 755 /etc/service/php56/run
+
 # install language pack required to add PPA
 	RUN apt-get update \
 		&& apt-get install -qy language-pack-en-base \
@@ -39,8 +50,8 @@ MAINTAINER Dirk Lüth <info@qoopido.com>
 			php-memcached
 			
 # generate locales
-	RUN cp /usr/share/i18n/SUPPORTED /var/lib/locales/supported.d/local && \
-		locale-gen
+	RUN cp /usr/share/i18n/SUPPORTED /var/lib/locales/supported.d/local \
+		&& locale-gen
 
 # install composer
 	RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
@@ -48,27 +59,16 @@ MAINTAINER Dirk Lüth <info@qoopido.com>
 		&& php composer-setup.php \
 		&& php -r "unlink('composer-setup.php');"
 
-# configure defaults
-	COPY configure.sh /
-	ADD config /config
-	RUN chmod +x /configure.sh && \
-		chmod 755 /configure.sh
-	RUN /configure.sh && \
-		chmod +x /etc/my_init.d/*.sh && \
-		chmod 755 /etc/my_init.d/*.sh && \
-		chmod +x /etc/service/php56/run && \
-		chmod 755 /etc/service/php56/run
-
 # enable extensions
 
 # disable extensions
 
 # add default /app directory
 	ADD app /app
-	RUN mkdir -p /app/htdocs && \
-    	mkdir -p /app/data/sessions && \
-    	mkdir -p /app/data/logs && \
-    	mkdir -p /app/config
+	RUN mkdir -p /app/htdocs \
+    	&& mkdir -p /app/data/sessions \
+    	&& mkdir -p /app/data/logs \
+    	&& mkdir -p /app/config
 
 # cleanup
 	RUN apt-get -qy autoremove \
